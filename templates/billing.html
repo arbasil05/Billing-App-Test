@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <style>
+        .link-1 {
+            transition: all 0.3s ease;
+        }
+
+        .link-1:hover {
+            transform: scale(1.1);
+        }
+
+        .logo {
+            font-size: 35px;
+        }
+
+        .border-try {
+            border-bottom: 1px solid #dedede;
+        }
+
+        .border-product {
+            border-right: 1px solid #dedede;
+        }
+
+        #cart-table th,
+        #cart-table td {
+            text-align: center;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+
+        #sales-table th,
+        #sales-table td {
+            text-align: center;
+        }
+
+        #expense-table th,
+        #expense-table td {
+            text-align: center;
+        }
+
+        #register-table th,
+        #register-table td {
+            text-align: center;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content {
+            flex: 1;
+        }
+
+        footer {
+            background-color: #343a40; /* Dark background color */
+            color: #fff; /* White text color */
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <div class="modal fade" id="expensepopup" tabindex="-1" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Expenses</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <table class="table" id="expense-table">
+                            <thead>
+                                <tr>
+                                    <th>Expense</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in expense_items %}
+                                <tr>
+                                    <td>{{ expense.expense_name }}</td>
+                                    <td>₹{{ expense.expense_amount }}</td>
+                                    <td><a href="{% url 'remove_expense' expense.id %}"
+                                            class="btn btn-sm btn-danger">Remove</a></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No expenses found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Registry pop up -->
+    <div class="modal fade" id="registrypopup" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-center" id="exampleModalLongTitle">Registry</h5>
+                </div>
+                <div class="modal-body">
+                    <table class="table" id="register-table">
+                        <thead>
+                            <tr>
+                                <th>Sales</th>
+                                <th>Expense</th>
+                                <th>UPI Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>₹ {{ sales_total }}</td>
+                                <td>₹ {{ expense_total }}</td>
+                                <td>₹ {{ upi_total }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h1 class="fw-bold text-center">Total Sales : ₹ <span id="total-register">{{ total_register }}</span></h1>
+                    <h1 class="fw-bold text-center">Total in Register: ₹ <span id="total-register">{{ total_register_after_upi }}</span></h1>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark py-3 fixed-top">
+        <div class="container">
+            <a href="{% url 'home' %}" class="navbar-brand h1 logo">Rahim <span class="text-warning">Footwear</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navmenu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="navbar-item">
+                        <a href="{% url 'billing' %}" class="nav-link link-1">Billing</a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="{% url 'history' %}" class="nav-link link-1">History</a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="{% url 'debt' %}" class="nav-link link-1">Debt</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <section class="bg-light p-5 mt-5">
+        <div class="container">
+            <div class="row d-flex flex-wrap">
+                <div class="col-md-5 d-flex justify-content-center align-items-center mt-4">
+                    <form class="border p-5 w-100" id="item-form">
+
+                        <h2 class="h2 text-center mb-4">Product Details</h2>
+                        <!-- Product Name -->
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="productName" placeholder="Enter product name"
+                                required name="product_name" autocomplete="off">
+                        </div>
+                        <!-- Product Price -->
+                        <div class="mb-3">
+                            <label for="productPrice" class="form-label">Product Price</label>
+                            <input type="number" class="form-control" id="productPrice"
+                                placeholder="Enter product price" step="1" required name="product_price" autocomplete="off">
+                        </div>
+                        <!-- Product Discount -->
+                        <div class="mb-3">
+                            <label for="productDiscount" class="form-label">Product Discount</label>
+                            <input type="number" class="form-control" id="productDiscount" placeholder="Enter discount"
+                                 required name="product_discount" autocomplete="off">
+                        </div>
+                        <!-- Submit and Cancel Buttons -->
+                        <div class="d-flex justify-content-lg-between flex-wrap">
+                            <button type="submit" class="btn btn-primary mx-2 mb-4-sm" id="product-details-submit">Add
+                                To Cart</button>
+                            <button type="reset" class="btn btn-secondary" id="product-details-cancel">Cancel</button>
+                        </div>
+                    </form>
+
+                </div>
+                <div class="col-md-7 mt-4">
+                    <table class="table" id="cart-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Discount</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr>
+                                <td>{{ item.cart_product_name }}</td>
+                                <td>₹{{ item.cart_product_price }}</td>
+                                <td>₹{{ item.cart_product_discount }}</td>
+                                <td>₹{{ item.cart_product_total }}</td>
+                                <td><a href="{% url 'remove_item' item.id %}" class="btn btn-sm btn-danger">Remove</a>
+                                </td>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5">No items added yet</td>
+                            </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Receipt -->
+    <section class="bg-light text-dark mb-3">
+        <div class="container border p-3 d-flex align-items-start justify-content-center w-50 flex-column mb-4">
+            <div>
+                <h1 class="h1 text-center fw-bold">Total Amount : ₹ <span>{{ cart_total }}</span></h1>
+            </div>
+        </div>
+    </section>
+    <div class="container d-flex align-items-center justify-content-center mb-3">
+        <form action="{% url 'add_to_sales' %}" method="post">
+            {% csrf_token %}
+            <div class="form-check d-flex justify-content-center mb-4">
+                <input class="form-check-input" type="checkbox" name="upi"></input>
+                <label class="form-check-label ms-2">UPI or Card (Gpay,Phone pe, etc...)</label>
+            </div>
+            <button class="btn btn-success btn-lg" id="checkoutbutton">Check Out</button>
+            <button class="btn btn-secondary btn-lg mx-3" id="cancelcheckoutbutton">Cancel</button>
+        </form>
+    </div>
+
+
+    <!-- Sales Report and expenses -->
+    <section class="bg-light text-dark mb-3">
+        <hr>
+        <h1 class="text-center mt-3 mb-3">Today's Sales Report</h1>
+
+        <div class="container">
+            <div class="row d-flex flex-wrap">
+                <div class="col-md-8 mt-1">
+                    <div class="col card p-5 mt-1">
+                        <div class="row">
+                            <table class="table" id="sales-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sales</th>
+                                        <th>Amount</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in today_sales %}
+                                    {% if sale.sale_upi == True %}
+                                    <tr>
+                                        <td align="text-center">{{ sale.sale_product_name }} <span style="color: #0000FF; overflow-y: auto;overflow-y: auto;">(UPI)</span></td>
+                                        <td>₹{{ sale.sale_product_total }}</td>
+                                        <td><a href="{% url 'remove_sales' sale.id %}"
+                                                class="btn btn-sm btn-danger">Remove</a>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td>{{ sale.sale_product_name }}</td>
+                                        <td>₹{{ sale.sale_product_total }}</td>
+                                        <td><a href="{% url 'remove_sales' sale.id %}"
+                                                class="btn btn-sm btn-danger">Remove</a>
+                                    </tr>
+                                    {% endif %}
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3">No sales added yet</td>
+                                    </tr>
+                                    {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row">
+                            <div class="container d-flex justify-content-end">
+                                <button class="btn btn-primary btn-lg" data-bs-toggle="modal"
+                                    data-bs-target="#registrypopup">View Registry</button>
+                                <a href="{% url 'close_sales' %}">
+                                    <button class="btn btn-danger btn-lg ms-3" id="close_sales">Close Sales</button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 p-2">
+                    <div class="container card text-dark">
+                        <form action="{% url 'add_to_expense' %}" method="get">
+                            <h1 class="text-center mt-3 fw-bold">Expenses</h1>
+                            <div class="mb-3">
+                                <label for="expense-name" class="form-label">Expense</label>
+                                <input type="text" class="form-control" id="expense-name" placeholder="expense name"
+                                    required name="expense_name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="expense-amount" class="form-label">Amount</label>
+                                <input type="number" class="form-control" id="expense-amount" placeholder="Amount"
+                                    step="0.01" required name="expense_amount">
+                            </div>
+                            <div class="container d-flex align-items-center justify-content-center p-3">
+                                <button class="btn btn-lg btn-primary mx-3" id="expenseadd" type="submit">Add</button>
+                                <button class="btn btn-lg btn-secondary me-3" type="reset"
+                                    id="expensecancel">Cancel</button>
+                        </form>
+
+                        <button class="btn btn-lg btn-info" data-bs-toggle="modal"
+                            data-bs-target="#expensepopup">View</button>
+                    </div>
+                    <div class="container text-start">
+                        <h1 class="h2 mb-3">Total Expense : ₹ <span>{{ expense_total }}</span></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    </section>
+
+
+
+    <!-- Footer -->
+    <footer class="p-4 bg-dark text-white text-center">
+        <div class="container">
+            <p class="h1">Rahim <span class="text-warning">Footwear</span></p>
+            <a href="#" class="position-relative d-block mx-auto mt-3">
+                <i class="bi bi-arrow-up-circle-fill h1"></i>
+            </a>
+        </div>
+    </footer>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+        integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+        crossorigin="anonymous"></script>
+
+    <script>
+        close_sales = document.getElementById('close_sales');
+        close_sales.addEventListener('click', function(){
+            
+            isconfirmed = confirm("Are you sure you want to close today's sales?");
+
+            if(!isconfirmed){
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
+
+</html>
